@@ -62,6 +62,7 @@ const UserSchema = new Schema<IUser>(
         type: mongoose.Schema.Types.ObjectId,
         ref: "Profile", //Here we are referencing the Profile model
       },
+      createdAt: {type: Date, default: Date.now}
     },
   },
   {

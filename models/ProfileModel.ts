@@ -1,13 +1,12 @@
-import mongoose, {model, Document} from "mongoose";
-import {IUser} from "./UserModel"
-
+import mongoose, { model, Schema, Document } from "mongoose";
+import { IUser } from "./UserModel";
 
 export interface IProfile extends Document {
   bio: string;
   profilePicture: string;
   user: IUser["_id"]; //ObjectId of the User Documents
 }
-export const profileSchema = new mongoose.Schema<IProfile>({
+export const profileSchema = new Schema<IProfile>({
   bio: { type: String },
   profilePicture: { type: String },
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
