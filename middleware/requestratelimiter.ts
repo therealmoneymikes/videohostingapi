@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import RedisClient from "../Redis/client";
 import Redis from "ioredis";
-
+import config from "config"
 /**
  * @description Rate Limiting is a key performance enhancer for APIs
  *              To prevent API failure, load balancing issues

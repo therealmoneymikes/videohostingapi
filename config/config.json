@@ -1,0 +1,7 @@
+{
+
+    "MAX_AMOUNT_OF_REQUESTS": 15,
+    "RATE_LIMIT_TIME": 300
+
+    
+}
