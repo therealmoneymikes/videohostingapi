@@ -57,6 +57,28 @@ class RedisClient {
     const client = RedisClient.getClient();
     return await client.del(key);
   }
+
+  //Increment a key for the rate limiting
+  public static async incr(key: string): Promise<number> {
+    const client = RedisClient.getClient();
+    return await client.incr(key);
+  }
+
+  // Set expiration time for a key
+  public static async expire(
+    key: string,
+    ttlInSeconds: number,
+
+  ): Promise<number> {
+    const client = RedisClient.getClient();
+    return await client.expire(key, ttlInSeconds);
+  }
+
+  // Get time-to-live (TTL) for a key
+  public static async ttl(key: string): Promise<number> {
+    const client = RedisClient.getClient();
+    return await client.ttl(key);
+  }
 }
 
 export default RedisClient;
