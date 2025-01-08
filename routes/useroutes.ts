@@ -7,11 +7,13 @@ import {
   userLoginController,
 } from "../controller/usercontroller";
 
-const app = express.Router();
+const router = express.Router();
 
-app.post("/signup", validate(UserValidationSchema), createUserController);
-app.post(
+router.post("/signup", validate(UserValidationSchema), createUserController);
+router.post(
   "/login/:username",
   validate(UserValidationSchema),
   userLoginController
 );
+
+export default router;
