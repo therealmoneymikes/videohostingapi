@@ -3,11 +3,12 @@ import { IUser } from "./UserModel";
 import cuid from "cuid";
 
 export interface IVideo extends Document {
-  id: string;
   title: String;
   description: string;
   url: string;
-  genreId: ObjectId //Map GenreId to Genre Object for relationshio
+  hlsPath: string;
+  genreId: ObjectId //Map GenreId to Genre Object for relationship
+  createdAt: Date
 }
 
 const videoSchema = new Schema<IVideo>(
@@ -25,10 +26,12 @@ const videoSchema = new Schema<IVideo>(
     },
     description: { type: String },
     url: { type: String, required: true },
+    hlsPath: {type: String, required: true},
     genreId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Genre",
     },
+    createdAt: {type: Date, default: Date.now}
   },
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true },}
 );

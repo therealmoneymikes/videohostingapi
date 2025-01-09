@@ -3,13 +3,16 @@ import morgan from "morgan";
 import { requestRateLimiter } from "./middleware/requestratelimiter";
 import { connectToDb } from "./db/db";
 import RedisClient from "./Redis/client";
-import {userRoutes }from "./routes/index"
+import {userRoutes, videoRoutes }from "./routes/index"
 const app = express();
 
 //Middleware
-app.use(morgan(`${process.env.NODE_ENV === "development" ? "dev" : "production"}`));
-app.use(express.json());
+app.use(morgan(`${process.env.NODE_ENV === "development" ? "dev" : "production"}`));//morgan
+app.use(express.json());//json parsing 
 app.use(express.urlencoded({ extended: true }));
+
+//Static files
+app.use("/hls", express.static("./hls_output"))
 
 
 
@@ -21,6 +24,7 @@ RedisClient.getClient().connect();
 
 //Routes
 app.use("/api/v1", userRoutes)
+app.use("/api/v1/videos", videoRoutes)
 
 
 //Server

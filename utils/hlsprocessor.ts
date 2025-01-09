@@ -37,7 +37,7 @@ const convertVideoToHLS = (
   });
 };
 
-const processVideos = async (videoDir: string, outputDir: string) => {
+export const processVideos = async (videoDir: string, outputDir: string) => {
   //Extensions
   const SUPPORTED_EXTENSIONS = /\.(mp4|avi|mkv)$/;
   //Note to self, course videos are mp4 or avi or mkv only for now
@@ -64,7 +64,6 @@ const processVideos = async (videoDir: string, outputDir: string) => {
   await Promise.all(promises);
 };
 
-// Run the process
-const videoDir = "./videos"; // Directory with your original videos
-const outputDir = "./hls_output"; // Output directory for HLS files
-processVideos(videoDir, outputDir);
+
+
+
