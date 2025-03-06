@@ -37,7 +37,7 @@ app.use("/api/v1", userRoutes)
 app.use("/api/v1/videos", videoRoutes)
 
 //Stripe Routes
-// app.use("/stripe", stripe)
+app.use("/api/v1/payments", paymentRoutes)
 
 //Server
 const PORT = process.env.PORT ?? 3000
