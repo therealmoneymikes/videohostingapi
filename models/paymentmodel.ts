@@ -2,7 +2,7 @@ import mongoose, {Document, Model} from "mongoose"
 
 
 
-enum PaymentStatus {
+export enum PaymentStatus {
     PENDING = "PENDING",
     FAILED = "FAILED",
     SUCCESSFUL = "SUCCESSFUL"
