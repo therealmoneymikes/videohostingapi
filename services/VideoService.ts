@@ -9,7 +9,7 @@ export class VideoService {
     const videoDir = "./videos"; // Directory with your original videos
     const outputDir = "./hls_output"; // Output directory for HLS files
     try {
-      await processVideos(videoDir, outputDir);
+      await processVideos(videoDir, outputDir, 2);
     } catch (error) {
       throw new Error(`Failed to process video: ${error.message}`);
     }
