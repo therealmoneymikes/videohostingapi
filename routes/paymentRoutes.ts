@@ -1,6 +1,5 @@
 import express from "express";
 import { PaymentController } from "../controller/paymentController";
-import l from "express"
 import { stripeWebhookHandler } from "../controller/stripeWebhookController";
 
 const router = express.Router()

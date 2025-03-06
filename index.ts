@@ -4,7 +4,7 @@ import { requestRateLimiter } from "./middleware/requestratelimiter";
 import { connectToDb } from "./db/db";
 import RedisClient from "./Redis/client";
 import dotenv from "dotenv"
-import {userRoutes, videoRoutes }from "./routes/index"
+import {userRoutes, videoRoutes, paymentRoutes, }from "./routes/index"
 
 import cors from "cors"
 const app = express();
@@ -36,6 +36,8 @@ RedisClient.getClient().connect();
 app.use("/api/v1", userRoutes)
 app.use("/api/v1/videos", videoRoutes)
 
+//Stripe Routes
+// app.use("/stripe", stripe)
 
 //Server
 const PORT = process.env.PORT ?? 3000

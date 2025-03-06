@@ -10,10 +10,6 @@ import {
 const router = express.Router();
 
 router.post("/signup", validate(UserValidationSchema), createUserController);
-router.post(
-  "/login/:username",
-  validate(UserValidationSchema),
-  userLoginController
-);
+router.post("/login/:username",validate(UserValidationSchema), userLoginController);
 
 export default router;
