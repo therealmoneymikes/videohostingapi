@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { StripeService } from "../services/paymentService";
+import { PaymentService } from "../services/paymentService";
 
 export class PaymentController {
   static async createPayment(req: Request, res: Response) {
     try {
       const { amount, currency, paymentMethodId } = req.body;
-      const paymentIntent = await StripeService.createPaymentIntent(
+      const paymentIntent = await PaymentService.createPaymentIntent(
         amount,
         currency,
         paymentMethodId

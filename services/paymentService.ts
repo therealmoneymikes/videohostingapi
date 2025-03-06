@@ -1,10 +1,11 @@
 import Stripe from "stripe";
 import { stripeConfig } from "../config/stripe";
 import Payment, { PaymentStatus } from "../models/paymentmodel";
+import { EmailService } from "./emailService";
 
 
 
-export class StripeService {
+export class PaymentService {
     static async createPaymentIntent(amount: number, currency: string, paymentMethodId: string) {
         return await stripeConfig.paymentIntents.create({
             amount,
@@ -26,7 +27,7 @@ export class StripeService {
                 stripePaymentId: paymentIntent.id,
                 amount: paymentIntent.amount_received / 100, //Convert from cents
                 currency: paymentIntent.currency,
-                status: PaymentStatus.SUCCESSFUL
+                status:"succeeded"
             })
 
             await newPayment.save();
@@ -35,7 +36,24 @@ export class StripeService {
 
             //Notify user by email
             if(paymentIntent.metadata?.email){
+                EmailService.sendSuccessfulPaymentEmail(
+                  paymentIntent.metadata.email, newPayment
+                );
                 console.log("Sending email to: ", paymentIntent.metadata.email + "With Payment: ", newPayment)
+            }
+        } catch (error) {
+            console.error("❌ Error handling successful payment:", error);
+        }
+    }
+
+    static async handleUnsuccessfulPayment (paymentIntent: Stripe.PaymentIntent) {
+        try {
+            if(paymentIntent.status === "canceled"){
+                EmailService.sendUnsuccessfulPaymentEmail(paymentIntent.metadata.email, paymentIntent.amount, paymentIntent.currency)
+                console.log(
+                  "Sending email to: ",
+                  paymentIntent.metadata.email + "With Payment: ",
+                );
             }
         } catch (error) {
             console.error("❌ Error handling successful payment:", error);
