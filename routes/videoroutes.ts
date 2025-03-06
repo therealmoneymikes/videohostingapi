@@ -4,7 +4,7 @@ import {
   getVideoById,
   getAllVideos,
   uploadVideo,
-} from "../controller/videocontroller";
+} from "../db/videocontroller";
 import { validate } from "../middleware/userschemamiddleware";
 import { videoValidationSchema } from "../validators/videovalidation";
 
