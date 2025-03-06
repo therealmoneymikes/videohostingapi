@@ -3,9 +3,19 @@ import morgan from "morgan";
 import { requestRateLimiter } from "./middleware/requestratelimiter";
 import { connectToDb } from "./db/db";
 import RedisClient from "./Redis/client";
+import dotenv from "dotenv"
 import {userRoutes, videoRoutes }from "./routes/index"
+
+import cors from "cors"
 const app = express();
 
+//Envs
+dotenv.config();
+
+//STDs
+app.use(cors())
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
 //Middleware
 app.use(morgan(`${process.env.NODE_ENV === "development" ? "dev" : "production"}`));//morgan
 app.use(express.json());//json parsing 
