@@ -1,8 +1,14 @@
 import { exec, spawn } from "child_process";
-import { Worker as ThreadWorker, isMainThread, parentPort, workerData } from "worker_threads";
+import {
+  Worker as ThreadWorker,
+  isMainThread,
+  parentPort,
+  workerData,
+} from "worker_threads";
 import fs from "fs";
 import { maxHeaderSize } from "http";
 import path from "path";
+import { getAvailableCPUThreads } from "./autoscaling";
 
 const conversionCommand = (
   _inputPath: string,
@@ -33,10 +39,11 @@ const conversionCommand = (
     "0", //Ensures that the playlist contains all the segments, not just thre recent ones
     "-hls_segment_filename",
     path.join(_outputPath, "segment_%03d.ts"), //generates segements e.g segment_001.ts, segment_002.ts
-    path.join(_outputPath, "playlist.m3u8"),//The main HLS playlist files
-  ];}
+    path.join(_outputPath, "playlist.m3u8"), //The main HLS playlist files
+  ];
+};
 
-  //Coverts videos from coversion command to HLS
+//Coverts videos from coversion command to HLS
 const convertVideoToHLS = (
   inputPath: string,
   outputPath: string
@@ -44,14 +51,17 @@ const convertVideoToHLS = (
   return new Promise((resolve, reject) => {
     //I've manually handle the resolve and reject for the ffmpeg conversion logic
 
-
     const commandArgs = conversionCommand(inputPath, outputPath);
     const ffmpegSpawn = spawn("ffmpeg", commandArgs);
 
     //On STDout messages in the data event, this displays the data info as a string
-    ffmpegSpawn.stdout.on("data", (data) => console.log(`[FFmpeg]: ${data.toString()}`));
-    //On STDERR message in the error event, this displays the data info as 
-    ffmpegSpawn.stderr.on("data", (data) => console.error(`[FFmpeg ERROR]: ${data.toString()}`));
+    ffmpegSpawn.stdout.on("data", (data) =>
+      console.log(`[FFmpeg]: ${data.toString()}`)
+    );
+    //On STDERR message in the error event, this displays the data info as
+    ffmpegSpawn.stderr.on("data", (data) =>
+      console.error(`[FFmpeg ERROR]: ${data.toString()}`)
+    );
 
     ffmpegSpawn.on("close", (code) => {
       if (code === 0) {
@@ -64,29 +74,32 @@ const convertVideoToHLS = (
   });
 };
 
-
 //Update add maxThread amount to handle concurrency
 const processWorkers = async (videoPath: string, outputPath: string) => {
   try {
-    console.log(`Worker processing video data: ${videoPath}`)
+    console.log(`Worker processing video data: ${videoPath}`);
     await convertVideoToHLS(videoPath, outputPath);
     console.log(`🎉 Finished processing: ${videoPath}`);
     parentPort?.postMessage({ success: true });
-    console.log(``)
+    console.log(``);
   } catch (error) {
-       console.error(`⚠️ Worker error: ${error}`);
-       parentPort?.postMessage({ success: false });
+    console.error(`⚠️ Worker error: ${error}`);
+    parentPort?.postMessage({ success: false });
   }
-}
+};
 
-//Ensures that processWorkers is running on the main thread 
+//Ensures that processWorkers is running on the main thread
 //The main communcation chanmel between the main thread and the workers is parentPort
 //via {success: true} or false for task completion
 //via workerData
 if (!isMainThread) {
   processWorkers(workerData.inputPath, workerData.outputPath);
 }
-export const processVideos = async (videoDir: string, outputDir: string, maxThreads: number) => {
+export const processVideos = async (
+  videoDir: string,
+  outputDir: string,
+  maxThreads: number
+) => {
   //Extensions
   const SUPPORTED_EXTENSIONS = /\.(mp4|avi|mkv)$/;
   //Note to self, course videos are mp4 or avi or mkv only for now
@@ -101,53 +114,59 @@ export const processVideos = async (videoDir: string, outputDir: string, maxThre
     //Make a New Dir
     fs.mkdirSync(outputPath, { recursive: true });
     //return input and outpupt paths
-    return {inputPath, outputPath}
+    return { inputPath, outputPath };
   });
 
   //By FIFO -> First in the queue gets processed then shifted
   const activeWorkerThreads: Promise<void>[] = [];
 
   while (videoQueue.length > 0) {
-    if(activeWorkerThreads.length < maxThreads) {
-      const {inputPath, outputPath} = await videoQueue.shift()!;
+    const dynamicMaxThreads = await getAvailableCPUThreads();
+    if (activeWorkerThreads.length < dynamicMaxThreads) {
+      console.log(
+        `🧠 Active Threads: ${activeWorkerThreads.length} | Dynamic Max: ${dynamicMaxThreads}`
+      );
+      const { inputPath, outputPath } = await videoQueue.shift()!;
 
       const workerPromise = new Promise<void>((resolve, reject) => {
         //Generate a new Work
         const worker = new ThreadWorker(__filename, {
-          workerData: {inputPath, outputPath},
+          workerData: { inputPath, outputPath },
         });
-      
-        worker.on("message", (message) => {
-          if(message && typeof message.success === "boolean"){
-            if (message.success) {
-              message.success ? resolve(): reject(`❌ Failed to process ${inputPath}`)
 
+        worker.on("message", (message) => {
+          if (message && typeof message.success === "boolean") {
+            if (message.success) {
+              message.success
+                ? resolve()
+                : reject(`❌ Failed to process ${inputPath}`);
             } else {
-              console.log(`Worked failed to process ${inputPath}: ${message.error}`)
+              console.log(
+                `Worked failed to process ${inputPath}: ${message.error}`
+              );
             }
           }
-      })
+        });
         worker.on("error", reject);
         worker.on("exit", (code) => {
-          if(code !== 0) reject(`Worker stopped with exit code ${code}`)
-        })
-      })
+          if (code !== 0) reject(`Worker stopped with exit code ${code}`);
+        });
+      });
       //Push worker into the active worker threads array
       activeWorkerThreads.push(workerPromise);
       //Once workerPromise is complete we will remove it from the promises array
       workerPromise.finally(() => {
-        activeWorkerThreads.splice(activeWorkerThreads.indexOf(workerPromise), 1)
+        activeWorkerThreads.splice(
+          activeWorkerThreads.indexOf(workerPromise),
+          1
+        );
       });
     }
-    //Takes the promise array to generate a new promise that resolves as soon as one of the 
+    //Takes the promise array to generate a new promise that resolves as soon as one of the
     //promises of the worker is resolved i,e [Promise 1, Promise 2, Promise 3] if 1 is resolved, the value
     //return from Promise.race would be the result of Promise 1
-    await Promise.race(activeWorkerThreads)
+    await Promise.race(activeWorkerThreads);
   }
 
   await Promise.all(activeWorkerThreads);
 };
-
-
-
-
