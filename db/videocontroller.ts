@@ -10,7 +10,7 @@ export const getVideoById = async (req: Request, res: Response) => {
     }
     res.status(200).json({ success: true, data: video });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    if (error instanceof Error) res.status(500).json({ error: error.message });
   }
 };
 
@@ -19,7 +19,7 @@ export const getAllVideos = async (req: Request, res: Response) => {
     const videos = await VideoService.getAllVideos();
     res.status(200).json(videos);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    if (error instanceof Error) res.status(500).json({ error: error.message });
   }
 };
 
@@ -28,6 +28,6 @@ export const uploadVideo = async (req: Request, res: Response) => {
     const videos = await VideoService.uploadVideo(req.body);
     res.status(200).json(videos);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+     if (error instanceof Error) res.status(500).json({ error: error.message });
   }
 };

@@ -7,6 +7,8 @@ import dotenv from "dotenv"
 import {userRoutes, videoRoutes, paymentRoutes, }from "./routes/index"
 
 import cors from "cors"
+import config from "../videohostingapi/config/config.json"
+import { routes } from "./config/urlconfig";
 const app = express();
 
 //Envs
@@ -18,8 +20,6 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 //Middleware
 app.use(morgan(`${process.env.NODE_ENV === "development" ? "dev" : "production"}`));//morgan
-app.use(express.json());//json parsing 
-app.use(express.urlencoded({ extended: true }));
 
 //Static files
 app.use("/hls", express.static("./hls_output"))
@@ -30,17 +30,31 @@ app.use("/hls", express.static("./hls_output"))
 //Database
 connectToDb(process.env.MONGO_URI!);
 //Redis
-RedisClient.getClient().connect();
+
+if (process.env.REDIS_ENABLED === "true"){
+    (async () => {
+       try{ 
+        await RedisClient.getClient()
+        } catch (err){
+            if (err instanceof Error)
+                console.error("Redis Error: ", err.message)
+        }
+    } )
+}
+
 
 //Routes
-app.use("/api/v1", userRoutes)
-app.use("/api/v1/videos", videoRoutes)
+app.use(routes.USERS, userRoutes)
+app.use(routes.VIDEOS, videoRoutes)
 
 //Stripe Routes
-app.use("/api/v1/payments", paymentRoutes)
+app.use(routes.PAYMENTS, paymentRoutes)
+
+    console.log(routes.USERS)
+
 
 //Server
-const PORT = process.env.PORT ?? 3000
-app.listen(PORT, () => {
+const PORT = Number(process.env.PORT) ?? 3000
+app.listen(PORT, "localhost", 10, () => {
     console.group(`Server is running on port ${PORT}`)
 })

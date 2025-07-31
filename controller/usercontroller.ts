@@ -14,18 +14,25 @@ import RedisClient from "../Redis/client"
  *              needed services to process a request and then return the response
  */
 
-export const createUserController = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const user = await UserService.createUser(req.body)
-        res.status(201).json({success: true, data: user})
-    } catch (error) {
-        next(error)
-    }
-}
+
+
+export const createUserController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const user = await UserService.createUser(req.body);
+    res.status(201).json({ success: true, data: user });
+  } catch (error) {
+    console.log("Error:", error);
+    next(error)
+  }
+};
 
 
 //User Log In Controller
-export const userLoginController = async (req: Request, res: Response, next: NextFunction) => {
+export const userLoginController = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const {username, token} = req.body;
 
     try{
@@ -37,7 +44,8 @@ export const userLoginController = async (req: Request, res: Response, next: Nex
         res.json({message: "User has logged in successfully"})
 
     } catch (error) {
-        next(error) //Pass the error to the next func to handle
+        console.error("Error:", error) //Pass the error to the next func to handle
+        next()
     }
 }
 
@@ -46,7 +54,7 @@ export const userLogoutController = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { username } = req.params;
+  const { username } = req.body;
 
   try {
     //Deleting user from the cache
@@ -55,8 +63,11 @@ export const userLogoutController = async (
       //0 mean there is no value, 1 means there is
       res.status(404).json({ error: "User Session not found" });
     }
+
+    res.json({message: "User logged out successfully"})
   } catch (error) {
-    next(error);
+    console.error("Error:", error);
+    next(error)
   }
 
   //if delete is successful
@@ -72,7 +83,7 @@ export const getUserSessionByUsername = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { username } = req.params;
+  const { username } = req.body;
 
   try {
     //the `session:${username}` is quite repeative ideally this should be

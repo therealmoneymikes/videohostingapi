@@ -4,7 +4,10 @@
     "RATE_LIMIT_TIME": 300,
     "HIGH_LOAD_CPU_LIMIT": 0.3,
     "MODERATE_LOAD_CPU_LIMIT": 0.5,
-    "LOW_LOAD_CPU_LIMIT": 0.75
+    "LOW_LOAD_CPU_LIMIT": 0.75,
+
+    "API_VERSION": "1",
+    "BASE_API_ROUTE": "/api"
 
     
 }

@@ -3,7 +3,7 @@ import { IUser } from "./UserModel";
 import cuid from "cuid";
 
 export interface IVideo extends Document {
-  title: String;
+  title: string;
   description: string;
   url: string;
   hlsPath: string;
@@ -14,8 +14,8 @@ export interface IVideo extends Document {
 const videoSchema = new Schema<IVideo>(
   {
     id: {
-      type: String,
-      default: cuid(),
+      type: String, 
+      default: () => cuid(),
       unique: true,
     },
     title: {
@@ -23,6 +23,8 @@ const videoSchema = new Schema<IVideo>(
       minlength: [8, "Title must be at least 8 characters long"],
       maxlength: [255, "Title must be no more than 255 characters"],
       unique: true,
+      index: true, 
+
     },
     description: { type: String },
     url: { type: String, required: true },
@@ -30,6 +32,7 @@ const videoSchema = new Schema<IVideo>(
     genreId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Genre",
+      index: true
     },
     createdAt: {type: Date, default: Date.now}
   },

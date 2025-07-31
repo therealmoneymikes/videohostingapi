@@ -11,7 +11,8 @@ export class VideoService {
     try {
       await processVideos(videoDir, outputDir, 2);
     } catch (error) {
-      throw new Error(`Failed to process video: ${error.message}`);
+      if (error instanceof Error)
+        throw new Error(`Failed to process video: ${error.message}`);
     }
 
     const videoDataObject = {
